@@ -117,7 +117,7 @@ if page == "Mark Attendance":
                         elif attendance == "Present":
                             attendance_df.at[name, selected_date] = "P"
                         elif attendance == "W&W":
-                            attendance_df.at[name, selected_date] = "P"
+                            attendance_df.at[name, selected_date] = "W&W"
                         elif attendance == "Absent":
                             attendance_df.at[name, selected_date] = "A"
                         st.success(f"Attendance marked for {name}")
