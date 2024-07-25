@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
-# Add custom CSS for minimalistic look and responsiveness
-
-
 # List of names from Thane Yuvak Mandal
 names = [
     'Akshad Hiteshbhai Bhadra', 'Aryan Abhijitbhai Kulkarni', 'Dhruv Mahendrabhai Jethwa',
@@ -45,12 +42,15 @@ current_year = datetime.now().year
 # Generate all Saturdays for the current year starting from July
 saturdays = list(get_all_saturdays(current_year))
 
-# Initialize DataFrame
-attendance_df = pd.DataFrame(index=names, columns=saturdays)
+# Initialize DataFrame in session state if it does not exist
+if "attendance_df" not in st.session_state:
+    st.session_state.attendance_df = pd.DataFrame(index=names, columns=saturdays)
+
+attendance_df = st.session_state.attendance_df
 
 # Function to get summary
 def get_summary(attendance_df, period):
-    summary = attendance_df.apply(lambda row: (row == "Present").sum() + (row == "W&W").sum(), axis=1)
+    summary = attendance_df.apply(lambda row: (row == "P").sum(), axis=1)
     return summary
 
 # Function to filter attendance data based on period
@@ -93,19 +93,26 @@ if page == "Mark Attendance":
                 attendance = st.radio(
                     f"Attendance for {name}",
                     ["Present", "W&W", "Absent", "Absent with reason"],
-                    index=0 if attendance_df.at[name, selected_date] == "Present" else 1 if attendance_df.at[name, selected_date] == "W&W" else 2 if attendance_df.at[name, selected_date] == "Absent" else 3,
+                    index=0 if attendance_df.at[name, selected_date] == "P" else 1 if attendance_df.at[name, selected_date] == "W&W" else 2 if attendance_df.at[name, selected_date] == "A" else 3,
                     key=f"attendance_{name}_{selected_date}",
                     horizontal=True
                 )
+
+                reason = ""
                 if attendance == "Absent with reason":
                     reason = st.text_input(f"Reason for {name}", key=f"reason_{name}_{selected_date}")
 
             if st.button("Submit"):
                 if attendance == "Absent with reason":
-                    attendance_df.at[name, selected_date] = f"Absent with reason: {reason}"
-                else:
-                    attendance_df.at[name, selected_date] = attendance
+                    attendance_df.at[name, selected_date] = f"AR: {reason}"
+                elif attendance == "Present":
+                    attendance_df.at[name, selected_date] = "P"
+                elif attendance == "W&W":
+                    attendance_df.at[name, selected_date] = "P"
+                elif attendance == "Absent":
+                    attendance_df.at[name, selected_date] = "A"
                 st.success(f"Attendance marked for {name}")
+                st.rerun()  # Refresh the page to update the data
 
 elif page == "Week Attendance":
     st.title("Weekly Attendance Summary")
