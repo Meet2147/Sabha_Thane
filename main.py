@@ -47,7 +47,7 @@ attendance_df = pd.DataFrame(index=names, columns=saturdays)
 
 # Function to get summary
 def get_summary(attendance_df, period):
-    summary = attendance_df.apply(lambda row: (row == "P").sum() + (row == "Present in White and White").sum(), axis=1)
+    summary = attendance_df.apply(lambda row: (row == "Present").sum() + (row == "W&W").sum(), axis=1)
     return summary
 
 # Function to filter attendance data based on period
@@ -89,12 +89,16 @@ if page == "Mark Attendance":
                 with col2:
                     attendance = st.radio(
                         f"Attendance for {name}",
-                        ["Present", "Present in White and White", "Absent"],
-                        index=0 if attendance_df.at[name, selected_date] == "P" else 1 if attendance_df.at[name, selected_date] == "Present in White and White" else 2,
+                        ["Present", "W&W", "Absent", "Absent with reason"],
+                        index=0 if attendance_df.at[name, selected_date] == "Present" else 1 if attendance_df.at[name, selected_date] == "W&W" else 2 if attendance_df.at[name, selected_date] == "Absent" else 3,
                         key=f"attendance_{name}_{selected_date}",
                         horizontal=True
                     )
                     attendance_df.at[name, selected_date] = attendance
+
+                    if attendance == "Absent with reason":
+                        reason = st.text_input(f"Reason for {name}", key=f"reason_{name}_{selected_date}")
+                        attendance_df.at[name, selected_date] = f"Absent with reason: {reason}"
 
 elif page == "Week Attendance":
     st.title("Weekly Attendance Summary")
