@@ -44,7 +44,7 @@ saturdays = list(get_all_saturdays(current_year))
 
 # Initialize DataFrame in session state if it does not exist
 if "attendance_df" not in st.session_state:
-    st.session_state.attendance_df = pd.DataFrame(index=names, columns=saturdays)
+    st.session_state.attendance_df = pd.DataFrame(index=names, columns=[s.date() for s in saturdays])
 
 attendance_df = st.session_state.attendance_df
 
@@ -71,49 +71,56 @@ st.sidebar.title("Attendance App Navigation")
 pages = ["Mark Attendance", "Week Attendance", "Month Attendance", "Quarter Attendance", "Half Year Attendance", "Yearly Attendance"]
 page = st.sidebar.radio("Go to", pages)
 
+# Get selected date from session state if it exists
+selected_date = st.session_state.get("selected_date", saturdays[0].date())
+
 if page == "Mark Attendance":
     st.title("Mark Attendance")
-    selected_date = st.date_input("Select a Saturday", value=saturdays[0], min_value=saturdays[0], max_value=saturdays[-1])
-    selected_date = pd.to_datetime(selected_date)
-    st.write(selected_date)
+    selected_date = st.date_input("Select a Saturday", value=selected_date, min_value=saturdays[0].date(), max_value=saturdays[-1].date())
+    st.session_state.selected_date = selected_date  # Save the selected date to session state
 
-    if selected_date not in saturdays:
+    if selected_date not in [s.date() for s in saturdays]:
         st.error("Please select a valid Saturday.")
     else:
-        st.write(f"## Mark Attendance for {selected_date.date()}")
+        st.write(f"## Mark Attendance for {selected_date}")
+
+        # Display all names in 5 columns
+        cols = st.columns(5)
+        for i, name in enumerate(names):
+            col = cols[i % 5]
+            col.write(name)
 
         search_name = st.text_input("Search for a name:")
         filtered_names = [name for name in names if search_name.lower() in name.lower()]
 
         if search_name and filtered_names:
-            name = filtered_names[0]  # Get the first matching name
-            col1, col2 = st.columns([1, 3])
-            with col1:
-                st.write(name)
-            with col2:
-                attendance = st.radio(
-                    f"Attendance for {name}",
-                    ["Present", "W&W", "Absent", "Absent with reason"],
-                    index=0 if attendance_df.at[name, selected_date] == "P" else 1 if attendance_df.at[name, selected_date] == "W&W" else 2 if attendance_df.at[name, selected_date] == "A" else 3,
-                    key=f"attendance_{name}_{selected_date}",
-                    horizontal=True
-                )
+            for name in filtered_names:
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.write(name)
+                with col2:
+                    attendance = st.radio(
+                        f"Attendance for {name}",
+                        ["Present", "W&W", "Absent", "Absent with reason"],
+                        index=0 if attendance_df.at[name, selected_date] == "P" else 1 if attendance_df.at[name, selected_date] == "P" else 2 if attendance_df.at[name, selected_date] == "A" else 3,
+                        key=f"attendance_{name}_{selected_date}",
+                        horizontal=True
+                    )
 
-                reason = ""
-                if attendance == "Absent with reason":
-                    reason = st.text_input(f"Reason for {name}", key=f"reason_{name}_{selected_date}")
+                    reason = ""
+                    if attendance == "Absent with reason":
+                        reason = st.text_input(f"Reason for {name}", key=f"reason_{name}_{selected_date}")
 
-            if st.button("Submit"):
-                if attendance == "Absent with reason":
-                    attendance_df.at[name, selected_date] = f"AR: {reason}"
-                elif attendance == "Present":
-                    attendance_df.at[name, selected_date] = "P"
-                elif attendance == "W&W":
-                    attendance_df.at[name, selected_date] = "P"
-                elif attendance == "Absent":
-                    attendance_df.at[name, selected_date] = "A"
-                st.success(f"Attendance marked for {name}")
-                st.rerun()  # Refresh the page to update the data
+                    if st.button(f"Submit {name}"):
+                        if attendance == "Absent with reason":
+                            attendance_df.at[name, selected_date] = f"AR: {reason}"
+                        elif attendance == "Present":
+                            attendance_df.at[name, selected_date] = "P"
+                        elif attendance == "W&W":
+                            attendance_df.at[name, selected_date] = "P"
+                        elif attendance == "Absent":
+                            attendance_df.at[name, selected_date] = "A"
+                        st.success(f"Attendance marked for {name}")
 
 elif page == "Week Attendance":
     st.title("Weekly Attendance Summary")
@@ -141,9 +148,13 @@ def convert_df(df):
 
 csv = convert_df(attendance_df)
 
+# Format the filename with the selected date
+formatted_date = st.session_state.selected_date.strftime("%d_%m_%y")
+filename = f"Attendance_{formatted_date}.csv"
+
 st.download_button(
     label="Download attendance data as CSV",
     data=csv,
-    file_name='attendance.csv',
+    file_name=filename,
     mime='text/csv',
 )
