@@ -3,74 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 # Add custom CSS for minimalistic look and responsiveness
-st.markdown("""
-    <style>
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f0f2f6;
-    }
-    .stApp {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #333;
-    }
-    .stTextInput label, .stRadio label {
-        font-size: 16px;
-        color: #333;
-    }
-    .stTextInput input, .stRadio input {
-        font-size: 16px;
-        padding: 5px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-    .stRadio div[role="radiogroup"] {
-        display: flex;
-        justify-content: space-around;
-    }
-    .stButton button {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-    }
-    .stButton button:hover {
-        background-color: #0056b3;
-    }
-    .stDownloadButton button {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-    }
-    .stDownloadButton button:hover {
-        background-color: #218838;
-    }
-    @media (max-width: 768px) {
-        .stApp {
-            padding: 10px;
-        }
-        .stTextInput label, .stRadio label {
-            font-size: 14px;
-        }
-        .stTextInput input, .stRadio input {
-            font-size: 14px;
-            padding: 3px;
-        }
-        .stButton button, .stDownloadButton button {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-    }
-    </style>
-""", unsafe_allow_html=True)
+
 
 # List of names from Thane Yuvak Mandal
 names = [
