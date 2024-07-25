@@ -75,6 +75,7 @@ if page == "Mark Attendance":
     st.title("Mark Attendance")
     selected_date = st.date_input("Select a Saturday", value=saturdays[0], min_value=saturdays[0], max_value=saturdays[-1])
     selected_date = pd.to_datetime(selected_date)
+    st.write(selected_date)
 
     if selected_date not in saturdays:
         st.error("Please select a valid Saturday.")
